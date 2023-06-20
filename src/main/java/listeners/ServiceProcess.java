@@ -51,7 +51,7 @@ public class ServiceProcess extends Thread {
 
 	public void run() {
 		status = "RUNNING";
-		log.debug("Status is "+ status);
+		log.debug("Status is " + status);
 		try {
 			while (status.equals("RUNNING")) {
 
@@ -69,7 +69,7 @@ public class ServiceProcess extends Thread {
 				if (customRequest != null) {
 					log.debug("Custom Process");
 					log.trace(customRequest);
-					
+
 					doCustomProcess(customRequest, output);
 					input.close();
 					output.close();
@@ -101,9 +101,9 @@ public class ServiceProcess extends Thread {
 						printRequest(line, buffReader);
 						doHTTPProcess(arrayMyInput, writer);
 					}
-					
+
 					log.debug("HTTP Process");
-					
+
 					writer.close();
 					buffReader.close();
 
@@ -124,7 +124,7 @@ public class ServiceProcess extends Thread {
 			log.error("An Error has occured ", e);
 		}
 		status = "STOPPED";
-		log.debug("Status is "+ status);
+		log.debug("Status is " + status);
 	}
 
 	private void doCustomProcess(CustomRequest customRequest, OutputStream outputStream)
@@ -134,10 +134,10 @@ public class ServiceProcess extends Thread {
 		ObjectOutputStream outputStream2 = new ObjectOutputStream(outputStream);
 
 		if (customRequest.getProcess().equals("getDataFile")) {
-			
 
 			try {
-				FileReader fileReader = new FileReader(new File(Config.get().getCsvPath() + customRequest.getFileName()));
+				FileReader fileReader = new FileReader(
+						new File(Config.get().getCsvPath() + customRequest.getFileName()));
 				BufferedReader reader2 = new BufferedReader(fileReader);
 
 				List<Person> persons = createPersons(reader2);
@@ -152,11 +152,10 @@ public class ServiceProcess extends Thread {
 		} else if (customRequest.getProcess().equals("domyprocess")) {
 			if (customRequest.getName().equals("pippo")) {
 				respose = printQueueFromFileCustom(customRequest.getType(), customRequest.getFileName(), outputStream2);
-			}else {
+			} else {
 				respose.setStatus("KO");
 				respose.setError("Il nome non è pippo");
 			}
-			
 
 		}
 
@@ -164,7 +163,8 @@ public class ServiceProcess extends Thread {
 
 	}
 
-	private CustomRespose printQueueFromFileCustom(String processType,String fileName, ObjectOutputStream outputStream) {
+	private CustomRespose printQueueFromFileCustom(String processType, String fileName,
+			ObjectOutputStream outputStream) {
 		Queue queue = new Queue();
 		CustomRespose respose = new CustomRespose();
 		try {
@@ -221,10 +221,15 @@ public class ServiceProcess extends Thread {
 			try {
 
 				// create json string
-				String myJsonPersons = createPersonJson(reader2);
+//				String myJsonPersons = createPersonJson(reader2);
 
-				String json = "[" + myJsonPersons + "]";
-				String respCode = "HTTP/1.1 200 OK\r\n" + "Content-Type: application/json\r\n\r\n" + json + "\r\n";
+//				String json = "[" + myJsonPersons + "]";
+//				String respCode = "HTTP/1.1 200 OK\r\n" + "Content-Type: application/json\r\n\r\n" + json + "\r\n";
+				String myHTMLPersons = createPersonHTML(reader2);
+				String html = "<html><head><title>Utenti Tabellati</title></head><body><h1>User List</h1>"
+						+ myHTMLPersons + "</body></html>";
+				String respCode = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html; charset=utf-8\r\n\r\n" + html
+						+ "\r\n";
 
 				writer.print(respCode);
 				writer.flush();
@@ -239,10 +244,10 @@ public class ServiceProcess extends Thread {
 
 	}
 
-	private void printQueueFromFile(String processType,String fileName, PrintWriter writer) {
+	private void printQueueFromFile(String processType, String fileName, PrintWriter writer) {
 		Queue queue = new Queue();
 		try {
-			
+
 			FileReader fileReader = new FileReader(new File(Config.get().getCsvPath() + fileName));
 			ProcessEnQueue enQueue = new ProcessEnQueue(queue, fileReader);
 
@@ -353,10 +358,11 @@ public class ServiceProcess extends Thread {
 		return persons;
 	}
 
-	private String createPersonJson(BufferedReader reader2) throws IOException, InstantiationException,
+	private String createPersonHTML(BufferedReader reader2) throws IOException, InstantiationException,
 			IllegalAccessException, ClassNotFoundException, UnsupportedRecordException {
 
-		String myJsonPersons = "";
+		String headerTablePerson = "<tr><th>id</th><th>Firstname</th><th>Lastname</th><th>Age</th><th>Job</th></tr>";
+		String rowTablePerson = "";
 		String myLine = reader2.readLine();
 
 		while (myLine != null && myLine.length() > 0) {
@@ -367,13 +373,37 @@ public class ServiceProcess extends Thread {
 
 				Person person = PersonFactory.createPerson(myLine);
 
-				myJsonPersons = myJsonPersons + "{" + person.toJson() + "},";
+				rowTablePerson = rowTablePerson + "<tr><td>" + person.getId() + "</td><td>" + person.getFirstname()
+						+ "</td><td>" + person.getLastname() + "</td><td>" + person.getAge() + "</td><td>"
+						+ person.getJob() + "</td></tr>";
 			}
 
 		}
-		myJsonPersons = myJsonPersons.substring(0, myJsonPersons.length() - 1);
-		return myJsonPersons;
+		rowTablePerson = "<table>" + headerTablePerson + rowTablePerson + "</table>";
+		return rowTablePerson;
 	}
+
+//	private String createPersonJson(BufferedReader reader2) throws IOException, InstantiationException,
+//			IllegalAccessException, ClassNotFoundException, UnsupportedRecordException {
+//
+//		String myJsonPersons = "";
+//		String myLine = reader2.readLine();
+//
+//		while (myLine != null && myLine.length() > 0) {
+//			log.debug("myLine: " + myLine);
+//			myLine = reader2.readLine();
+//
+//			if (myLine != null) {
+//
+//				Person person = PersonFactory.createPerson(myLine);
+//
+//				myJsonPersons = myJsonPersons + "{" + person.toJson() + "},";
+//			}
+//
+//		}
+//		myJsonPersons = myJsonPersons.substring(0, myJsonPersons.length() - 1);
+//		return myJsonPersons;
+//	}
 
 	private void printRequest(String line, BufferedReader buffReader) throws IOException {
 
@@ -382,6 +412,5 @@ public class ServiceProcess extends Thread {
 			line = buffReader.readLine();
 		}
 
-		
 	}
 }
