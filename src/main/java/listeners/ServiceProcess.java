@@ -217,7 +217,26 @@ public class ServiceProcess extends Thread {
 		if (myProcessToDo.equals("/getDataFile")) {
 			FileReader fileReader = new FileReader(new File(Config.get().getCsvPath() + fileName));
 			BufferedReader reader2 = new BufferedReader(fileReader);
-
+			String styleTag = "<style> "
+					+ "#customers {"
+					+ "  font-family: Arial, Helvetica, sans-serif;"
+					+ "  border-collapse: collapse;"
+					+ "  width: 100%;"
+					+ "}"
+					+ "#customers td, #customers th {"
+					+ "  border: 1px solid #ddd;"
+					+ "  padding: 8px;"
+					+ "}"
+					+ "#customers tr:nth-child(even){background-color: #f2f2f2;}"
+					+ "#customers tr:hover {background-color: #ddd;}"
+					+ "#customers th {"
+					+ "  padding-top: 12px;"
+					+ "  padding-bottom: 12px;"
+					+ "  text-align: left;\r\n"
+					+ "  background-color: #04AA6D;"
+					+ "  color: white;"
+					+ "}"
+					+ "</style>";
 			try {
 
 				// create json string
@@ -226,7 +245,7 @@ public class ServiceProcess extends Thread {
 //				String json = "[" + myJsonPersons + "]";
 //				String respCode = "HTTP/1.1 200 OK\r\n" + "Content-Type: application/json\r\n\r\n" + json + "\r\n";
 				String myHTMLPersons = createPersonHTML(reader2);
-				String html = "<html><head><title>Utenti Tabellati</title></head><body><h1>User List</h1>"
+				String html = "<html><head><title>Utenti Tabellati</title>"+styleTag+"</head><body><h1>User List</h1>"
 						+ myHTMLPersons + "</body></html>";
 				String respCode = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html; charset=utf-8\r\n\r\n" + html
 						+ "\r\n";
@@ -319,7 +338,6 @@ public class ServiceProcess extends Thread {
 			if (!deQueue.getStatus().equals("STOPPED")) {
 				oneFail = true;
 			}
-			;
 		}
 
 		if (oneFail)
@@ -328,7 +346,6 @@ public class ServiceProcess extends Thread {
 			for (ProcessDeQueue deQueue : deQueues) {
 				deQueue.interrupt();
 			}
-
 		}
 		return result;
 	}
@@ -379,7 +396,7 @@ public class ServiceProcess extends Thread {
 			}
 
 		}
-		rowTablePerson = "<table>" + headerTablePerson + rowTablePerson + "</table>";
+		rowTablePerson = "<table id=\"customers\">" + headerTablePerson + rowTablePerson + "</table>";
 		return rowTablePerson;
 	}
 
